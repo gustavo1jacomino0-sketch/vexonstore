@@ -1,0 +1,8 @@
+{
+  "name": "vexon-store",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "check": "node --check js/shop.js && node --check js/auth.js"
+  }
+}

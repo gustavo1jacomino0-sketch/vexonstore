@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="Minha conta Vexon Store — entrar, criar conta e recuperar senha." name="description"/>
+<title>Minha conta — Vexon Store</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,500;0,700;0,800;0,900;1,800;1,900&amp;family=Barlow:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="css/style.css" rel="stylesheet"/>
+<link href="css/auth.css" rel="stylesheet"/>
+</head>
+<body class="auth-page">
+<main class="auth-shell">
+<section class="auth-card">
+<aside class="auth-brand">
+<a aria-label="Voltar para a Vexon Store" class="auth-logo" href="index.html">
+<svg aria-hidden="true" height="32" viewbox="0 0 48 32" width="48">
+<path d="M4 4 L16 28 L24 12 L20 4 Z" fill="#f5f5f0"></path>
+<path d="M26 4 L38 28 L46 4 L38 4 L32 17 Z" fill="#fc6a1e"></path>
+</svg>
+<div>VEXON <span>STORE</span></div>
+</a>
+<h1>Sua conta.<br/><span>Seu espaço.</span></h1>
+<p>Entre para acompanhar seus pedidos, salvar produtos e ter uma experiência mais completa na Vexon Store.</p>
+</aside>
+<section class="auth-content">
+<a class="auth-back" href="index.html">← Voltar para a loja</a>
+<h2>Minha conta</h2>
+<p class="auth-subtitle">Entre ou crie sua conta gratuitamente.</p>
+<div class="auth-message" hidden="" id="auth-message"></div>
+<div id="auth-forms">
+<div aria-label="Autenticação" class="auth-tabs" role="tablist">
+<button class="auth-tab active" data-auth-tab="login" type="button">Entrar</button>
+<button class="auth-tab" data-auth-tab="signup" type="button">Criar conta</button>
+</div>
+<div class="auth-panel" data-auth-panel="login">
+<form class="auth-form" id="login-form">
+<div class="auth-field">
+<label for="login-email">E-mail</label>
+<input autocomplete="email" id="login-email" name="email" placeholder="seuemail@exemplo.com" required="" type="email"/>
+</div>
+<div class="auth-field">
+<label for="login-password">Senha</label>
+<div class="password-field"><input autocomplete="current-password" id="login-password" name="password" placeholder="Sua senha" required="" type="password"/><button aria-label="Exibir senha" class="toggle-password" data-toggle-password="login-password" title="Exibir senha" type="button">👁</button></div>
+</div>
+<button class="auth-link" data-forgot-password="" type="button">Esqueci minha senha</button>
+<button class="auth-submit" type="submit">Entrar na conta</button>
+</form>
+</div>
+<div class="auth-panel" data-auth-panel="signup" hidden="">
+<form class="auth-form" id="signup-form">
+<div class="auth-field">
+<label for="signup-name">Nome completo</label>
+<input autocomplete="name" id="signup-name" name="full_name" placeholder="Seu nome" required="" type="text"/>
+</div>
+<div class="auth-field">
+<label for="signup-email">E-mail</label>
+<input autocomplete="email" id="signup-email" name="email" placeholder="seuemail@exemplo.com" required="" type="email"/>
+</div>
+<div class="auth-field">
+<label for="signup-password">Senha</label>
+<div class="password-field"><input autocomplete="new-password" id="signup-password" minlength="6" name="password" placeholder="Mínimo de 6 caracteres" required="" type="password"/><button aria-label="Exibir senha" class="toggle-password" data-toggle-password="signup-password" title="Exibir senha" type="button">👁</button></div>
+</div>
+<div class="auth-field">
+<label for="signup-password-confirm">Confirmar senha</label>
+<div class="password-field"><input autocomplete="new-password" id="signup-password-confirm" minlength="6" name="password_confirm" placeholder="Digite a senha novamente" required="" type="password"/><button aria-label="Exibir senha" class="toggle-password" data-toggle-password="signup-password-confirm" title="Exibir senha" type="button">👁</button></div>
+</div>
+<button class="auth-submit" type="submit">Criar minha conta</button>
+</form>
+</div>
+<div class="auth-panel" data-auth-panel="reset" hidden="">
+<form class="auth-form" id="reset-form">
+<div class="auth-field">
+<label for="reset-email">E-mail da conta</label>
+<input autocomplete="email" id="reset-email" name="email" placeholder="seuemail@exemplo.com" required="" type="email"/>
+</div>
+<button class="auth-submit" type="submit">Enviar recuperação</button>
+<button class="auth-link" data-back-login="" type="button">← Voltar para entrar</button>
+</form>
+</div>
+</div>
+<div hidden="" id="logged-panel">
+<p class="auth-subtitle">Você já está conectado à Vexon Store.</p>
+<div class="logged-user">
+<strong id="user-name">Cliente Vexon</strong>
+<span id="user-email"></span>
+</div>
+<button class="logout-button" id="logout-button" type="button">Sair da conta</button>
+</div>
+</section>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/password-toggle.js"></script></body>
+</html>

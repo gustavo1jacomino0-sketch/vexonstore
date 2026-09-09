@@ -1,0 +1,69 @@
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(252,106,30,.14), transparent 30%),
+    radial-gradient(circle at 80% 90%, rgba(252,106,30,.08), transparent 30%),
+    #0b0b0b;
+}
+
+.auth-shell { width: min(100%, 980px); }
+.auth-card {
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+  background: #111;
+  box-shadow: 0 30px 90px rgba(0,0,0,.45);
+}
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px;
+  background: linear-gradient(145deg, rgba(252,106,30,.2), rgba(252,106,30,.03) 55%, transparent);
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+.auth-brand h1 { margin: 24px 0 10px; color: #fff; font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 900; font-style: italic; letter-spacing: -.04em; }
+.auth-brand h1 span { color: #fc6a1e; }
+.auth-brand p { max-width: 360px; color: #aaa; line-height: 1.7; }
+.auth-logo { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 900; font-style: italic; font-size: 1.5rem; }
+.auth-logo span { color: #fc6a1e; font-size: .65rem; letter-spacing: .35em; }
+.auth-content { padding: 38px; background: #121212; }
+.auth-content h2 { margin: 0 0 8px; color: #fff; font-size: 1.7rem; }
+.auth-subtitle { margin: 0 0 24px; color: #999; font-size: .9rem; }
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 22px; }
+.auth-tab { border: 1px solid #292929; border-radius: 10px; padding: 11px; color: #aaa; background: #181818; font-weight: 700; cursor: pointer; }
+.auth-tab.active { border-color: #fc6a1e; color: #fff; background: rgba(252,106,30,.12); }
+.auth-form { display: grid; gap: 14px; }
+.auth-field { display: grid; gap: 7px; }
+.auth-field label { color: #ddd; font-size: .78rem; font-weight: 700; }
+.auth-field input { width: 100%; box-sizing: border-box; border: 1px solid #303030; border-radius: 10px; padding: 12px 13px; outline: none; color: #fff; background: #0d0d0d; }
+.auth-field input:focus { border-color: #fc6a1e; box-shadow: 0 0 0 3px rgba(252,106,30,.1); }
+.auth-submit { border: 0; border-radius: 10px; padding: 13px; color: #fff; background: #fc6a1e; font-weight: 800; cursor: pointer; transition: .2s; }
+.auth-submit:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.auth-submit:disabled { opacity: .65; cursor: wait; transform: none; }
+.auth-link { border: 0; padding: 0; color: #fc6a1e; background: transparent; font-size: .82rem; cursor: pointer; text-align: left; }
+.auth-message { margin-bottom: 16px; border-radius: 10px; padding: 11px 13px; font-size: .82rem; line-height: 1.5; }
+.auth-message.error { color: #ffd5d5; border: 1px solid rgba(255,80,80,.25); background: rgba(255,80,80,.08); }
+.auth-message.success { color: #d7ffe4; border: 1px solid rgba(80,220,130,.25); background: rgba(80,220,130,.08); }
+.auth-message.warning { color: #ffe8cc; border: 1px solid rgba(252,106,30,.25); background: rgba(252,106,30,.08); }
+.auth-message[hidden] { display: none; }
+.auth-panel[hidden], #logged-panel[hidden], #auth-forms[hidden] { display: none; }
+.auth-back { display: inline-flex; margin-bottom: 22px; color: #aaa; text-decoration: none; font-size: .8rem; }
+.auth-back:hover { color: #fff; }
+.logged-user { margin: 16px 0 22px; padding: 16px; border: 1px solid #2a2a2a; border-radius: 12px; background: #0d0d0d; }
+.logged-user strong { display: block; color: #fff; margin-bottom: 5px; }
+.logged-user span { color: #999; font-size: .82rem; overflow-wrap: anywhere; }
+.logout-button { width: 100%; border: 1px solid #333; border-radius: 10px; padding: 12px; color: #fff; background: #181818; font-weight: 700; cursor: pointer; }
+.logout-button:hover { border-color: #fc6a1e; color: #fc6a1e; }
+
+@media (max-width: 760px) {
+  .auth-card { grid-template-columns: 1fr; }
+  .auth-brand { padding: 30px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .auth-brand p { display: none; }
+  .auth-content { padding: 28px 22px; }
+}
