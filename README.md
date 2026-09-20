@@ -1,66 +1,37 @@
-# Vexon Store
+# Vexon Store — visual remodelado e revisão de segurança
 
-Vexon Store para Vercel/GitHub com Supabase Auth e Mercado Pago Checkout Pro via Supabase Edge Functions.
+**Leia `SEGURANCA-E-INSTALACAO.md` antes de substituir a versão publicada.**
+O checkout agora depende da migração SQL e dos Secrets indicados nesse guia. Enviar somente os HTMLs não ativa as proteções do pagamento.
 
-## Estrutura
+O visual e os efeitos 3D foram preservados. As alterações de segurança incluem validação da sessão no servidor, catálogo de preços confiável, webhook assinado, pedidos com RLS, consulta real do status, endurecimento dos dados locais, recuperação de senha e cabeçalhos HTTP.
 
-```text
-vexon-store/
-├── index.html
-├── auth.html
-├── pages/
-├── css/
-├── js/
-├── assets/
-└── supabase/
-    ├── config.toml
-    └── functions/
-        ├── create-payment/index.ts
-        └── mercadopago-webhook/index.ts
+## Arquivos
+
+- `index.html`, `auth.html`, `pages/`, `css/`, `js/`, `assets/`: site.
+- `supabase/functions/`: funções de checkout e webhook, utilitários e catálogo.
+- `supabase/migrations/202609200001_security.sql`: tabelas e permissões novas, com prefixo `vexon_`.
+- `vercel.json`: build, pasta pública e cabeçalhos.
+- `scripts/`: build e validação locais, não publicados.
+- `tests/security.test.mjs`: testes de entradas maliciosas e funções com serviços simulados.
+
+## Verificação local
+
+Use Node.js 22.18 ou superior (testado com Node 24):
+
+```sh
+npm run check
+npm test
+npm run build
 ```
 
-## Supabase
+Não é necessário instalar dependências para esses comandos. Sirva `dist/` com Live Server após o build. Na Vercel, publique apenas `dist/`, respeitando `vercel.json`.
 
-O frontend usa apenas a URL pública e a Publishable key em `js/supabase-config.js`.
-Nunca coloque `service_role` ou o Access Token do Mercado Pago no frontend.
+O Supabase JS 2.116.0 está incluído localmente em `js/vendor/`, com a licença, sem carregar JavaScript de um CDN em cada visita. A chave `sb_publishable_...` do frontend é pública por definição; as chaves privadas ficam somente nos Secrets das Edge Functions.
 
-No Supabase Edge Functions Secrets, configure:
+## Preços e produtos
 
-```text
-MERCADOPAGO_ACCESS_TOKEN=SEU_ACCESS_TOKEN_PRIVADO
-```
+O catálogo autoritativo é `supabase/functions/_shared/catalog.json`: preços em centavos e `active` para disponibilidade. Foram importados os 33 produtos dos HTMLs originais; confirme preço e disponibilidade reais antes de ativar vendas. Não há controle de estoque ou cálculo de frete neste pacote.
 
-Deploy:
+Ao alterar catálogo: rode `npm run build`, publique o site e publique novamente `create-payment`. Preços, nomes e imagens do carrinho vêm da cópia estática do catálogo; os valores cobrados sempre são recalculados pelo servidor. Descrições, imagens de vitrine e preços riscados promocionais ainda devem ser editados no HTML quando necessário.
 
-```bash
-supabase functions deploy create-payment
-supabase functions deploy mercadopago-webhook
-```
-
-O webhook usa `verify_jwt = false`, pois é chamado pelo Mercado Pago.
-
-## Mercado Pago
-
-Fluxo:
-
-```text
-Carrinho → create-payment → Checkout Pro → webhook → Supabase
-```
-
-Retornos:
-
-```text
-https://vexonstore.vercel.app/pages/pagamento-sucesso.html
-https://vexonstore.vercel.app/pages/pagamento-falhou.html
-https://vexonstore.vercel.app/pages/pagamento-pendente.html
-```
-
-Webhook:
-
-```text
-https://npivsnxqvoezopfckxne.supabase.co/functions/v1/mercadopago-webhook
-```
-
-A preferência não exclui tipos de pagamento. Assim, o Checkout Pro mantém os meios disponíveis para a conta, incluindo cartões, saldo Mercado Pago e Pix. No Brasil, o Pix é identificado pelo tipo `bank_transfer`.
-
-**Importante sobre o Pix:** o Mercado Pago informa que o Pix no Checkout Pro só é exibido quando a conta recebedora possui uma Chave Pix cadastrada. Portanto, o código já está preparado para manter os métodos atuais + Pix; se o Pix não aparecer no ambiente de teste, verifique a configuração da Chave Pix na conta do Mercado Pago usada como recebedora.
+Não use as páginas de retorno como comprovante de venda. Elas consultam o pedido com a sessão do comprador; parâmetros da URL não confirmam pagamento.

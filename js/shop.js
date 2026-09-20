@@ -2,19 +2,11 @@
   'use strict';
 
   const STORAGE_PREFIX = 'vexon_store_v2';
-  let activeScope = getScope();
+  // Never display a previous user's cart before the current session is known.
+  let activeScope = 'guest';
+  let checkoutBusy = false;
   let favorites = loadSet('favorites');
   let cart = loadCart();
-
-  function getScope() {
-    try {
-      const user = window.vexonSupabase && window.vexonSupabase.auth;
-      // Scope is refreshed by auth state changes below. Guest data remains available.
-      return localStorage.getItem(STORAGE_PREFIX + '_scope') || 'guest';
-    } catch (_) {
-      return 'guest';
-    }
-  }
 
   function scopeKey(kind) {
     return STORAGE_PREFIX + '_' + activeScope + '_' + kind;
@@ -23,7 +15,7 @@
   function loadSet(kind) {
     try {
       const raw = JSON.parse(localStorage.getItem(scopeKey(kind)) || '[]');
-      return new Set(Array.isArray(raw) ? raw.map(String) : []);
+      return new Set(Array.isArray(raw) ? raw.filter(id => Object.hasOwn(window.VEXON_CATALOG || {}, id)).slice(0,100) : []);
     } catch (_) {
       return new Set();
     }
@@ -32,9 +24,15 @@
   function loadCart() {
     try {
       const raw = JSON.parse(localStorage.getItem(scopeKey('cart')) || '{}');
-      return raw && typeof raw === 'object' ? raw : {};
+      const clean = Object.create(null);
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+        for (const [id, item] of Object.entries(raw)) {
+          if (Object.hasOwn(window.VEXON_CATALOG || {}, id) && Number.isSafeInteger(item?.quantity) && item.quantity > 0) clean[id] = { quantity: Math.min(20,item.quantity) };
+        }
+      }
+      return clean;
     } catch (_) {
-      return {};
+      return Object.create(null);
     }
   }
 
@@ -65,24 +63,16 @@
   }
 
   function allProductSnapshots() {
-    const map = {};
-    productCards().forEach(card => {
-      const p = getProductFromCard(card);
-      if (p) map[p.id] = p;
-    });
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '_products') || '{}');
-      Object.assign(saved, map);
-      localStorage.setItem(STORAGE_PREFIX + '_products', JSON.stringify(saved));
-      return saved;
-    } catch (_) {
-      return map;
-    }
+    return savedProducts();
   }
 
   function savedProducts() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + '_products') || '{}'); }
-    catch (_) { return {}; }
+    const map = Object.create(null);
+    const base = new URL(window.location.pathname.includes('/pages/') ? '../' : './', window.location.href);
+    for (const [id,p] of Object.entries(window.VEXON_CATALOG || {})) {
+      if (p.active) map[id] = { id, name:p.name, price:p.price_cents/100, image:new URL(p.image,base).href };
+    }
+    return map;
   }
 
   function formatBRL(value) {
@@ -191,6 +181,7 @@
 
   function toggleFavorite(id) {
     id = String(id);
+    if (!Object.hasOwn(window.VEXON_CATALOG || {}, id)) return;
     if (favorites.has(id)) {
       favorites.delete(id);
       showToast('Removido dos favoritos');
@@ -211,7 +202,7 @@
     const p = products[id];
     if (!p) return;
     const current = Number(cart[id]?.quantity || 0);
-    cart[id] = { quantity: Math.max(1, current + Number(quantity || 1)), price: p.price, name: p.name, image: p.image };
+    cart[id] = { quantity: Math.min(20, Math.max(1, current + Number(quantity || 1))) };
     saveState();
     updateHeaderCounters();
     showToast(p.name + ' adicionado ao carrinho');
@@ -221,7 +212,8 @@
   function changeQty(id, delta) {
     id = String(id);
     if (!cart[id]) return;
-    cart[id].quantity = Number(cart[id].quantity || 0) + Number(delta || 0);
+    if (![1,-1].includes(delta)) return;
+    cart[id].quantity = Math.min(20, Number(cart[id].quantity || 0) + delta);
     if (cart[id].quantity <= 0) delete cart[id];
     saveState();
     updateHeaderCounters();
@@ -326,8 +318,18 @@
   function refresh() {
     addDataHooks();
     allProductSnapshots();
+    productCards().forEach(card => {
+      const product = window.VEXON_CATALOG?.[card.dataset.productId];
+      if (!product) return;
+      card.dataset.productPrice = String(product.price_cents / 100);
+      const price = card.querySelector('.text-lg.font-extrabold');
+      if (price) price.textContent = formatBRL(product.price_cents / 100);
+      const add = card.querySelector('[data-add-cart]');
+      if (add) { add.disabled = !product.active; if (!product.active) add.textContent = 'Indisponível'; }
+    });
     updateHeaderCounters();
     updateFavoriteButtons();
+    if (document.querySelector('[data-shop-drawer]')?.classList.contains('is-open')) renderDrawer();
   }
 
   async function syncScopeWithAuth() {
@@ -341,7 +343,7 @@
 
   function setScope(scope) {
     scope = scope || 'guest';
-    if (scope === activeScope) return;
+    if (scope === activeScope) { refresh(); return; }
     const previousScope = activeScope;
     activeScope = String(scope);
     try { localStorage.setItem(STORAGE_PREFIX + '_scope', activeScope); } catch (_) {}
@@ -357,18 +359,21 @@
   function mergeGuestIntoCurrent() {
     try {
       const guestFavs = new Set(JSON.parse(localStorage.getItem(STORAGE_PREFIX + '_guest_favorites') || '[]'));
-      guestFavs.forEach(id => favorites.add(String(id)));
+      guestFavs.forEach(id => { if (Object.hasOwn(window.VEXON_CATALOG || {}, id)) favorites.add(id); });
       const guestCart = JSON.parse(localStorage.getItem(STORAGE_PREFIX + '_guest_cart') || '{}');
       Object.entries(guestCart).forEach(([id, item]) => {
-        cart[id] = cart[id] || item;
-        cart[id].quantity = Number(cart[id].quantity || 0) + Number(item.quantity || 0);
+        if (!Object.hasOwn(window.VEXON_CATALOG || {}, id) || !Number.isSafeInteger(item?.quantity) || item.quantity < 1) return;
+        cart[id] = { quantity: Math.min(20, (cart[id]?.quantity || 0) + item.quantity) };
       });
       saveState();
+      localStorage.removeItem(STORAGE_PREFIX + '_guest_favorites');
+      localStorage.removeItem(STORAGE_PREFIX + '_guest_cart');
     } catch (_) {}
   }
 
 
   async function iniciarCheckoutMercadoPago(button) {
+    if (checkoutBusy) return;
     const supabase = window.vexonSupabase;
 
     if (!supabase?.auth) {
@@ -382,6 +387,7 @@
     }
 
     const originalText = button?.textContent || 'Finalizar compra';
+    checkoutBusy = true;
 
     if (button) {
       button.disabled = true;
@@ -409,112 +415,56 @@
         return;
       }
 
-      const products = allProductSnapshots();
-
+      setScope(user.id);
       const items = Object.entries(cart)
         .filter(([, item]) => Number(item?.quantity || 0) > 0)
-        .map(([id, item]) => {
-          const product = products[id] || {};
-
-          const productName =
-            product.name ||
-            item.name ||
-            'Produto Vexon';
-
-          const unitPrice = Number(
-            product.price ?? item.price ?? 0
-          );
-
-          if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-            throw new Error(
-              `Preço inválido para o produto "${productName}".`
-            );
-          }
-
-          const quantity = Math.max(
-            1,
-            Math.floor(Number(item.quantity || 1))
-          );
-
-          return {
-            id: String(id),
-            title: String(productName),
-            quantity,
-            unit_price: Number(unitPrice.toFixed(2)),
-            currency_id: 'BRL'
-          };
-        });
+        .map(([id, item]) => ({ id, quantity: item.quantity }))
+        .sort((a,b) => a.id.localeCompare(b.id));
 
       if (!items.length) {
         showToast('Seu carrinho está vazio.');
         return;
       }
 
-      const name =
-        user.user_metadata?.full_name ||
-        user.user_metadata?.name ||
-        'Cliente Vexon';
-
-      const externalReference =
-        'VEXON-' +
-        Date.now() +
-        '-' +
-        String(user.id)
-          .replace(/[^a-zA-Z0-9]/g, '')
-          .slice(0, 12);
+      const signature = JSON.stringify(items), key = STORAGE_PREFIX + '_checkout_' + user.id;
+      let operation;
+      try { operation = JSON.parse(sessionStorage.getItem(key)); } catch (_) {}
+      if (!operation || operation.signature !== signature || !/^[a-f0-9-]{36}$/i.test(operation.id || '')) {
+        operation = { signature, id: crypto.randomUUID() };
+        sessionStorage.setItem(key, JSON.stringify(operation));
+      }
 
       const { data, error } =
         await supabase.functions.invoke(
           'create-payment',
           {
             body: {
-              items,
-              payer: {
-                email: user.email,
-                name
-              },
-              external_reference: externalReference
+              items, request_id: operation.id
             }
           }
         );
 
       if (error) {
-        throw new Error(
-          error.message ||
-          'Não foi possível criar o pagamento.'
-        );
+        let message = 'Não foi possível iniciar o pagamento. Tente novamente.';
+        try { const result = await error.context?.json(); if (typeof result?.error === 'string') message = result.error.slice(0,220); } catch (_) {}
+        throw new Error(message);
       }
 
-      const checkoutUrl =
-        data?.init_point ||
-        data?.sandbox_init_point;
-
-      if (!checkoutUrl) {
-        console.error(
-          'Resposta da create-payment:',
-          data
-        );
-
-        throw new Error(
-          'O Mercado Pago não retornou o checkout.'
-        );
-      }
+      const checkoutUrl = new URL(data?.checkout_url);
+      if (checkoutUrl.protocol !== 'https:' || !['www.mercadopago.com.br','sandbox.mercadopago.com.br'].includes(checkoutUrl.hostname) || checkoutUrl.port || checkoutUrl.username || checkoutUrl.password || !checkoutUrl.pathname.startsWith('/checkout/')) throw new Error('Endereço de pagamento inválido.');
+      sessionStorage.setItem('vexon_last_order', String(data.order_id));
 
       closeDrawer();
-      window.location.assign(checkoutUrl);
+      window.location.assign(checkoutUrl.href);
 
     } catch (error) {
-      console.error(
-        'Erro no checkout Mercado Pago:',
-        error
-      );
-
       showToast(
         error?.message ||
         'Não foi possível iniciar o pagamento.'
       );
 
     } finally {
+      checkoutBusy = false;
       if (button && document.body.contains(button)) {
         button.disabled = false;
         button.textContent = originalText;

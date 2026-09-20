@@ -10,17 +10,22 @@
 const SUPABASE_URL = 'https://npivsnxqvoezopfckxne.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_PlURjeg69zmx8JbLkFszFg_lxYka4a4';
 
-const supabaseClient = window.supabase.createClient(
+const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
   {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      flowType: 'pkce'
     }
   }
-);
+) : null;
 
 window.vexonSupabase = supabaseClient;
-window.VEXON_SUPABASE_CONFIGURED = !SUPABASE_URL.includes('COLE_AQUI') && !SUPABASE_PUBLISHABLE_KEY.includes('COLE_AQUI');
+window.VEXON_SUPABASE_CONFIGURED = Boolean(supabaseClient);
+supabaseClient?.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY') window.VEXON_RECOVERY = true;
+  if (event === 'SIGNED_OUT') window.VEXON_RECOVERY = false;
+});

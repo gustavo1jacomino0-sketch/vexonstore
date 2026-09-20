@@ -1,2 +1,7 @@
+[functions.create-payment]
+# Handler authenticates the bearer token via /auth/v1/user before any operation.
+verify_jwt = false
+
 [functions.mercadopago-webhook]
+# Handler requires Mercado Pago HMAC signature.
 verify_jwt = false

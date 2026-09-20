@@ -1,0 +1,200 @@
+{
+  "p-fone-bluetooth-sem-fio": {
+    "name": "Fone Bluetooth Sem Fio",
+    "price_cents": 14990,
+    "image": "assets/images/18210999389e1b1d.jpg",
+    "active": true
+  },
+  "p-smartwatch-esportivo": {
+    "name": "Smartwatch Esportivo",
+    "price_cents": 19990,
+    "image": "assets/images/fb7ede4d23ac6efc.jpg",
+    "active": true
+  },
+  "p-air-fryer-5l-digital": {
+    "name": "Air Fryer 5L Digital",
+    "price_cents": 39990,
+    "image": "assets/images/cf91a0817dfb8096.jpg",
+    "active": true
+  },
+  "p-mochila-executiva": {
+    "name": "Mochila Executiva",
+    "price_cents": 12990,
+    "image": "assets/images/81e446ba09f87e21.jpg",
+    "active": true
+  },
+  "p-controle-sem-fio": {
+    "name": "Controle Sem Fio",
+    "price_cents": 34990,
+    "image": "assets/images/49c2f0ca7b44af34.jpg",
+    "active": true
+  },
+  "p-lumin-ria-de-mesa": {
+    "name": "Luminária de Mesa",
+    "price_cents": 11990,
+    "image": "assets/images/1a94f51465086987.jpg",
+    "active": true
+  },
+  "p-cafeteira-expresso": {
+    "name": "Cafeteira Expresso",
+    "price_cents": 64990,
+    "image": "assets/images/42b820bc34a8641f.jpg",
+    "active": true
+  },
+  "p-aspirador-vertical-sem-fio": {
+    "name": "Aspirador Vertical Sem Fio",
+    "price_cents": 54990,
+    "image": "assets/images/340b8b144e58a8a5.jpg",
+    "active": true
+  },
+  "p-kit-manta-almofada": {
+    "name": "Kit Manta + Almofada",
+    "price_cents": 9990,
+    "image": "assets/images/9e6e032ec0fcc4a9.jpg",
+    "active": true
+  },
+  "p-jogo-de-panelas-inox-5-pe-as": {
+    "name": "Jogo de Panelas Inox 5 peças",
+    "price_cents": 45990,
+    "image": "assets/images/8c800ec1fdcfeb26.jpg",
+    "active": true
+  },
+  "p-chaleira-el-trica-1-7l": {
+    "name": "Chaleira Elétrica 1,7L",
+    "price_cents": 14990,
+    "image": "assets/images/03669c9de71158e2.jpg",
+    "active": true
+  },
+  "p-caixa-de-som-port-til": {
+    "name": "Caixa de Som Portátil",
+    "price_cents": 17990,
+    "image": "assets/images/ea3b7ff85afcacf0.jpg",
+    "active": true
+  },
+  "p-power-bank-20-000mah": {
+    "name": "Power Bank 20.000mAh",
+    "price_cents": 12990,
+    "image": "assets/images/8632e74957f72453.jpg",
+    "active": true
+  },
+  "p-tablet-10-128gb": {
+    "name": "Tablet 10\" 128GB",
+    "price_cents": 89990,
+    "image": "assets/images/14df6bb5a84f8758.jpg",
+    "active": true
+  },
+  "p-drone-com-c-mera-4k": {
+    "name": "Drone com Câmera 4K",
+    "price_cents": 149990,
+    "image": "assets/images/321e4b5e8411c122.jpg",
+    "active": true
+  },
+  "p-parafusadeira-sem-fio": {
+    "name": "Parafusadeira Sem Fio",
+    "price_cents": 25990,
+    "image": "assets/images/f946642a0fd2a2e2.jpg",
+    "active": true
+  },
+  "p-kit-de-ferramentas-68-pe-as": {
+    "name": "Kit de Ferramentas 68 peças",
+    "price_cents": 19990,
+    "image": "assets/images/05162d12d50c8906.jpg",
+    "active": true
+  },
+  "p-serra-circular-1400w": {
+    "name": "Serra Circular 1400W",
+    "price_cents": 47990,
+    "image": "assets/images/758a6c3acb66c3fd.jpg",
+    "active": true
+  },
+  "p-mult-metro-digital": {
+    "name": "Multímetro Digital",
+    "price_cents": 8990,
+    "image": "assets/images/189e5314080b7bca.jpg",
+    "active": true
+  },
+  "p-trena-a-laser-40m": {
+    "name": "Trena a Laser 40m",
+    "price_cents": 18990,
+    "image": "assets/images/7b71d2ea6888327c.jpg",
+    "active": true
+  },
+  "p-esmerilhadeira-angular-850w": {
+    "name": "Esmerilhadeira Angular 850W",
+    "price_cents": 32990,
+    "image": "assets/images/8f33912bd3cc5c13.jpg",
+    "active": true
+  },
+  "p-headset-gamer-7-1": {
+    "name": "Headset Gamer 7.1",
+    "price_cents": 22990,
+    "image": "assets/images/6b08e4d8f46d8076.jpg",
+    "active": true
+  },
+  "p-teclado-mec-nico-rgb": {
+    "name": "Teclado Mecânico RGB",
+    "price_cents": 29990,
+    "image": "assets/images/017ff2836860a9ad.jpg",
+    "active": true
+  },
+  "p-mouse-gamer-16-000-dpi": {
+    "name": "Mouse Gamer 16.000 DPI",
+    "price_cents": 15990,
+    "image": "assets/images/aab6737b7ab6a12b.jpg",
+    "active": true
+  },
+  "p-cadeira-gamer-reclin-vel": {
+    "name": "Cadeira Gamer Reclinável",
+    "price_cents": 109990,
+    "image": "assets/images/bd9684f9314569e0.jpg",
+    "active": true
+  },
+  "p-mousepad-gamer-xl-rgb": {
+    "name": "Mousepad Gamer XL RGB",
+    "price_cents": 11990,
+    "image": "assets/images/fab8165e3b4f6eee.jpg",
+    "active": true
+  },
+  "p-t-nis-esportivo-leve": {
+    "name": "Tênis Esportivo Leve",
+    "price_cents": 24990,
+    "image": "assets/images/2333863152577171.jpg",
+    "active": true
+  },
+  "p-culos-de-sol-uv400": {
+    "name": "Óculos de Sol UV400",
+    "price_cents": 8990,
+    "image": "assets/images/01056191d2b7ed62.jpg",
+    "active": true
+  },
+  "p-jaqueta-bomber": {
+    "name": "Jaqueta Bomber",
+    "price_cents": 28990,
+    "image": "assets/images/d05f1bd1306028c5.jpg",
+    "active": true
+  },
+  "p-carteira-de-couro-slim": {
+    "name": "Carteira de Couro Slim",
+    "price_cents": 7990,
+    "image": "assets/images/21865bfaa04fb9cd.jpg",
+    "active": true
+  },
+  "p-rel-gio-anal-gico-a-o": {
+    "name": "Relógio Analógico Aço",
+    "price_cents": 32990,
+    "image": "assets/images/17d244d2396ce880.jpg",
+    "active": true
+  },
+  "p-camiseta-b-sica-algod-o": {
+    "name": "Camiseta Básica Algodão",
+    "price_cents": 5990,
+    "image": "assets/images/82addf1956354312.jpg",
+    "active": true
+  },
+  "p-bon-aba-curva": {
+    "name": "Boné Aba Curva",
+    "price_cents": 6990,
+    "image": "assets/images/2630a1a5be5316ee.jpg",
+    "active": true
+  }
+}

@@ -2,6 +2,7 @@
 
 <html lang="pt-BR">
 <head>
+<meta name="referrer" content="no-referrer">
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="Minha conta Vexon Store — entrar, criar conta e recuperar senha." name="description"/>
@@ -11,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,500;0,700;0,800;0,900;1,800;1,900&amp;family=Barlow:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="css/style.css" rel="stylesheet"/>
 <link href="css/auth.css" rel="stylesheet"/>
+<link rel="stylesheet" href="css/redesign.css">
 </head>
 <body class="auth-page">
 <main class="auth-shell">
@@ -62,11 +64,11 @@
 </div>
 <div class="auth-field">
 <label for="signup-password">Senha</label>
-<div class="password-field"><input autocomplete="new-password" id="signup-password" minlength="6" name="password" placeholder="Mínimo de 6 caracteres" required="" type="password"/><button aria-label="Exibir senha" class="toggle-password" data-toggle-password="signup-password" title="Exibir senha" type="button">👁</button></div>
+<div class="password-field"><input autocomplete="new-password" id="signup-password" minlength="12" name="password" placeholder="Mínimo de 12 caracteres" required="" type="password"/><button aria-label="Exibir senha" class="toggle-password" data-toggle-password="signup-password" title="Exibir senha" type="button">👁</button></div>
 </div>
 <div class="auth-field">
 <label for="signup-password-confirm">Confirmar senha</label>
-<div class="password-field"><input autocomplete="new-password" id="signup-password-confirm" minlength="6" name="password_confirm" placeholder="Digite a senha novamente" required="" type="password"/><button aria-label="Exibir senha" class="toggle-password" data-toggle-password="signup-password-confirm" title="Exibir senha" type="button">👁</button></div>
+<div class="password-field"><input autocomplete="new-password" id="signup-password-confirm" minlength="12" name="password_confirm" placeholder="Digite a senha novamente" required="" type="password"/><button aria-label="Exibir senha" class="toggle-password" data-toggle-password="signup-password-confirm" title="Exibir senha" type="button">👁</button></div>
 </div>
 <button class="auth-submit" type="submit">Criar minha conta</button>
 </form>
@@ -82,6 +84,11 @@
 </form>
 </div>
 </div>
+<div class="auth-panel" data-auth-panel="update" hidden>
+<form class="auth-form" id="update-password-form"><p class="auth-subtitle">Escolha uma nova senha.</p>
+<div class="auth-field"><label for="new-password">Nova senha</label><input id="new-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></div>
+<div class="auth-field"><label for="new-password-confirm">Confirmar nova senha</label><input id="new-password-confirm" name="confirm" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></div>
+<button class="auth-submit" type="submit">Salvar nova senha</button></form></div>
 <div hidden="" id="logged-panel">
 <p class="auth-subtitle">Você já está conectado à Vexon Store.</p>
 <div class="logged-user">
@@ -93,8 +100,9 @@
 </section>
 </section>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/vendor/supabase-2.116.0.js"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/password-toggle.js"></script></body>
+<script src="js/password-toggle.js"></script><script src="js/visual-effects.js" defer></script>
+</body>
 </html>

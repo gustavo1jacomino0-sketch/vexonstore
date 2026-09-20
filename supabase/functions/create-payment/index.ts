@@ -1,61 +1,46 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import catalog from '../_shared/catalog.json' with { type: 'json' };
+import { HttpError, normalizeItems, readJson, checkoutUrl, uuid, sha256, json, failure } from '../_shared/security.mjs';
+import { runtime } from '../_shared/runtime.mjs';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-const SITE_URL = "https://vexonstore.vercel.app";
-const SUPABASE_URL = "https://npivsnxqvoezopfckxne.supabase.co";
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return new Response(JSON.stringify({ error: "Método não permitido." }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
+export async function handle(req: Request, env = (key: string) => Deno.env.get(key), fetcher = fetch) {
+  let headers: Record<string, string> = {};
   try {
-    const { items, payer, external_reference } = await req.json();
-    if (!Array.isArray(items) || !items.length) throw new Error("Nenhum produto foi enviado.");
-
-    const normalizedItems = items.map((item: any) => {
-      const quantity = Math.floor(Number(item?.quantity ?? 0));
-      const unit_price = Number(item?.unit_price ?? 0);
-      const title = String(item?.title ?? "").trim();
-      if (!title || quantity < 1 || !Number.isFinite(unit_price) || unit_price <= 0) throw new Error("Um ou mais produtos possuem dados inválidos.");
-      return { id: String(item.id ?? ""), title: title.slice(0, 256), quantity, unit_price: Number(unit_price.toFixed(2)), currency_id: "BRL" };
+    const site = env('SITE_URL') || 'https://vexonstore.vercel.app';
+    if (new URL(site).origin !== site || !site.startsWith('https://')) throw new HttpError(503, 'Configuração do serviço pendente.');
+    const allowed = new Set([site, ...(env('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean)]);
+    const origin = req.headers.get('origin');
+    if (origin && !allowed.has(origin)) throw new HttpError(403, 'Origem não permitida.');
+    if (origin) headers = { 'Access-Control-Allow-Origin': origin, 'Vary': 'Origin', 'Access-Control-Allow-Headers': 'authorization, apikey, x-client-info, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
+    if (req.method !== 'POST') throw new HttpError(405, 'Método não permitido.');
+    const app = runtime(env, fetcher), user = await app.user(req);
+    if (!uuid(user.id)) throw new HttpError(401, 'Sessão inválida.');
+    if (env('CHECKOUT_ENABLED') !== 'true') throw new HttpError(503, 'O checkout está em manutenção. Tente mais tarde.');
+    app.required('MERCADOPAGO_ACCESS_TOKEN'); app.required('MERCADOPAGO_WEBHOOK_SECRET'); app.required('MP_COLLECTOR_ID');
+    const body = await readJson(req);
+    if (!uuid(body?.request_id)) throw new HttpError(400, 'Identificador da operação inválido.');
+    const { items, total } = normalizeItems(body.items, catalog);
+    items.sort((a, b) => a.id.localeCompare(b.id));
+    const fingerprint = await sha256(JSON.stringify({ items, mode: app.mode }));
+    const claim = await app.db('rpc/vexon_claim_checkout', 'POST', { p_user: user.id, p_key: body.request_id, p_hash: fingerprint, p_total: total, p_items: items, p_live: app.mode === 'production' });
+    if (claim.error === 'rate_limit') throw new HttpError(429, 'Muitas tentativas. Aguarde alguns minutos.');
+    if (claim.error) throw new HttpError(409, 'Esta operação já está em andamento ou expirou. Consulte o pedido antes de tentar outra compra.');
+    if (claim.checkout_url) return json({ checkout_url: checkoutUrl(claim.checkout_url, app.mode), order_id: claim.id }, 200, headers);
+    const orderId = claim.id;
+    // One preference attempt per key. Uncertain provider results stay locked.
+    const preference = await app.mp('/checkout/preferences', {
+      method: 'POST', headers: { 'X-Idempotency-Key': orderId },
+      body: JSON.stringify({ items, payer: { email: user.email }, external_reference: orderId,
+        back_urls: { success: `${site}/pages/pagamento-sucesso.html`, failure: `${site}/pages/pagamento-falhou.html`, pending: `${site}/pages/pagamento-pendente.html` },
+        auto_return: 'approved', notification_url: `${app.base}/functions/v1/mercadopago-webhook`,
+        expires: true, expiration_date_to: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      }),
     });
-
-    const accessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
-    if (!accessToken) throw new Error("MERCADOPAGO_ACCESS_TOKEN não configurado.");
-
-    const preference = {
-      items: normalizedItems,
-      payer: payer?.email ? { email: String(payer.email).trim(), name: String(payer.name ?? "Cliente Vexon").trim().slice(0, 120) } : undefined,
-      external_reference: String(external_reference ?? `VEXON-${Date.now()}`).slice(0, 256),
-      back_urls: {
-        success: `${SITE_URL}/pages/pagamento-sucesso.html`,
-        failure: `${SITE_URL}/pages/pagamento-falhou.html`,
-        pending: `${SITE_URL}/pages/pagamento-pendente.html`,
-      },
-      auto_return: "approved",
-      notification_url: `${SUPABASE_URL}/functions/v1/mercadopago-webhook`,
-      // Não restringimos os meios de pagamento aqui.
-      // O Checkout Pro disponibiliza os meios habilitados para a conta, incluindo Pix
-      // (bank_transfer), cartões e saldo Mercado Pago.
-      // O próprio Mercado Pago determina quais métodos estão disponíveis para o comprador.
-    };
-
-    const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-      body: JSON.stringify(preference),
-    });
-    const data = await response.json();
-
-    if (!response.ok) return new Response(JSON.stringify({ error: "Erro ao criar pagamento no Mercado Pago.", details: data }), { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
-    return new Response(JSON.stringify({ id: data.id, init_point: data.init_point, sandbox_init_point: data.sandbox_init_point }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error) {
-    console.error("create-payment:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Erro interno." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  }
-});
+    if (String(preference.collector_id) !== app.required('MP_COLLECTOR_ID')) throw new HttpError(502, 'Conta recebedora divergente.');
+    const url = checkoutUrl(app.mode === 'production' ? preference.init_point : preference.sandbox_init_point, app.mode);
+    const saved = await app.db(`vexon_orders?id=eq.${orderId}`, 'PATCH', { preference_id: String(preference.id), checkout_url: url });
+    if (!saved?.length) throw new HttpError(503, 'Não foi possível registrar o checkout.');
+    return json({ checkout_url: url, order_id: orderId }, 200, headers);
+  } catch (error) { return failure(error, headers); }
+}
+if (import.meta.main) Deno.serve((req: Request) => handle(req));
