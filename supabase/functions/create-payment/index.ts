@@ -2,6 +2,58 @@ import catalog from '../_shared/catalog.json' with { type: 'json' };
 import { HttpError, normalizeItems, readJson, checkoutUrl, uuid, sha256, json, failure } from '../_shared/security.mjs';
 import { runtime } from '../_shared/runtime.mjs';
 
+function makeBlingSku(name: string) {
+  const clean = String(name || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toUpperCase();
+  return clean ? `VEX-${clean}` : '';
+}
+
+async function assertBlingStock(items: Array<{ title: string; quantity: number }>, base: string, fetcher: typeof fetch) {
+  let response: Response;
+  try {
+    response = await fetcher(`${base}/functions/v1/bling-stock`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      redirect: 'error',
+      signal: AbortSignal.timeout(12000),
+    });
+  } catch (_) {
+    throw new HttpError(503, 'Não foi possível confirmar o estoque. Tente novamente.');
+  }
+
+  if (!response.ok) throw new HttpError(503, 'Não foi possível confirmar o estoque. Tente novamente.');
+
+  let data: any;
+  try { data = await response.json(); } catch (_) {
+    throw new HttpError(503, 'Não foi possível confirmar o estoque. Tente novamente.');
+  }
+  if (data?.ok !== true || !Array.isArray(data?.produtos)) {
+    throw new HttpError(503, 'Não foi possível confirmar o estoque. Tente novamente.');
+  }
+
+  const bySku = new Map<string, number>();
+  for (const row of data.produtos) {
+    const sku = String(row?.sku || '').trim().toUpperCase();
+    const qty = Number(row?.quantidade_disponivel);
+    if (/^VEX-[A-Z0-9-]{1,120}$/.test(sku) && Number.isFinite(qty)) {
+      bySku.set(sku, Math.max(0, Math.floor(qty)));
+    }
+  }
+
+  for (const item of items) {
+    const sku = makeBlingSku(item.title);
+    const available = bySku.get(sku);
+    if (!Number.isSafeInteger(available)) throw new HttpError(503, `Não foi possível confirmar o estoque de ${item.title}.`);
+    if (available <= 0) throw new HttpError(409, `${item.title} está esgotado.`);
+    if (item.quantity > available) throw new HttpError(409, `${item.title}: somente ${available} ${available === 1 ? 'unidade disponível' : 'unidades disponíveis'}.`);
+  }
+}
+
 export async function handle(req: Request, env = (key: string) => Deno.env.get(key), fetcher = fetch) {
   let headers: Record<string, string> = {};
   try {
@@ -21,6 +73,7 @@ export async function handle(req: Request, env = (key: string) => Deno.env.get(k
     if (!uuid(body?.request_id)) throw new HttpError(400, 'Identificador da operação inválido.');
     const { items, total } = normalizeItems(body.items, catalog);
     items.sort((a, b) => a.id.localeCompare(b.id));
+    await assertBlingStock(items, app.base, fetcher);
     const fingerprint = await sha256(JSON.stringify({ items, mode: app.mode }));
     const claim = await app.db('rpc/vexon_claim_checkout', 'POST', { p_user: user.id, p_key: body.request_id, p_hash: fingerprint, p_total: total, p_items: items, p_live: app.mode === 'production' });
     if (claim.error === 'rate_limit') throw new HttpError(429, 'Muitas tentativas. Aguarde alguns minutos.');

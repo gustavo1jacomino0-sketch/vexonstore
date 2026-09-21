@@ -64,3 +64,42 @@
 .vexon-contact-form input,.vexon-contact-form textarea{width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,.13);border-radius:8px;background:#0f0f0f;color:#fff;padding:.75rem;font:inherit;outline:none}
 .vexon-contact-form textarea{min-height:130px;resize:vertical}
 .vexon-contact-form input:focus,.vexon-contact-form textarea:focus{border-color:#fc6a1e}
+
+/* ===== Estoque sincronizado com Bling ===== */
+.vexon-stock-status{
+  margin-top:.65rem;
+  min-height:1.1rem;
+  font-size:.72rem;
+  line-height:1.3;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+.vexon-stock-status.is-available{color:#16a34a;}
+.vexon-stock-status.is-low{color:#d97706;}
+.vexon-stock-status.is-out,.vexon-stock-status.is-error{color:#dc2626;}
+.vexon-stock-status.is-loading{color:#9ca3af;}
+
+button[data-add-cart]:disabled,
+[data-checkout]:disabled,
+.vexon-qty button:disabled{
+  cursor:not-allowed;
+  opacity:.55;
+  transform:none!important;
+  box-shadow:none!important;
+}
+
+.vexon-drawer-stock{
+  display:block;
+  margin-top:.25rem;
+  font-size:.72rem;
+  color:#9ca3af;
+}
+
+.vexon-stock-warning{
+  display:block;
+  margin:.55rem 0 .25rem;
+  color:#dc2626;
+  font-size:.76rem;
+  font-weight:700;
+  line-height:1.35;
+}

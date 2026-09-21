@@ -1,0 +1,21 @@
+VEXON STORE - ATUALIZACAO DE ESTOQUE BLING
+
+1) GitHub/Vercel
+Substitua:
+- js/shop.js
+- css/shop.css
+
+2) Supabase Edge Functions
+Abra a funcao create-payment e substitua o codigo pelo arquivo:
+- supabase/functions/create-payment/index.ts
+Depois clique em Deploy updates.
+
+3) A funcao bling-stock precisa continuar publicada no projeto Supabase:
+https://npivsnxqvoezopfckxne.supabase.co/functions/v1/bling-stock
+
+Comportamento:
+- Exibe estoque nos cards.
+- Produto zerado fica Esgotado.
+- Bloqueia adicionar acima do saldo.
+- Revalida estoque antes do checkout no navegador.
+- create-payment revalida estoque no servidor antes de criar pagamento.
