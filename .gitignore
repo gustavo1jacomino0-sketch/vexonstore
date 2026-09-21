@@ -1,3 +1,14 @@
 node_modules/
 .DS_Store
 .vscode/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.log
+.vercel/
+dist/
+supabase/.temp/
+supabase/.branches/
