@@ -671,12 +671,14 @@
   }
 
   function boot() {
+    console.log('VEXON SHOP INICIOU');
     setupDrawer();
     addDataHooks();
     setupInteractions();
     refresh();
     syncScopeWithAuth();
     loadStock();
+    console.log('VEXON CHAMANDO ESTOQUE');
   }
 
   document.addEventListener('DOMContentLoaded', boot);
